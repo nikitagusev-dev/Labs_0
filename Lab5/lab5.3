@@ -1,0 +1,90 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+
+void swap(int *a, int i, int j)
+{
+	int temp = a[i];
+	a[i] = a[j];
+	a[j] = temp;
+}
+
+void buildHeap(int *a, int s, int N)
+{
+	int left;
+	int right;
+	int min;
+
+	while (s < N)
+	{
+		min = s;
+		left = 2 * s + 1;
+		right = 2 * s + 2;
+
+		if ((a[min] < a[left]) && (left < N))
+		{
+			min = left;
+		}
+
+		if ((a[min] < a[right]) && (right < N))
+		{
+			min = right;
+		}
+
+		if (min == s) return;
+			
+		swap(a, s, min);
+		s = min;
+		
+	}
+}
+
+void buildHeap2(int *a, int N)
+{
+	int mid = N / 2 - 1;
+	while (mid >= 0)
+	{
+		buildHeap(a, mid, N);
+		mid--;
+	}
+}
+
+void heapSort(int *a, int N)
+{
+	buildHeap2(a, N);
+	int last = N - 1;
+
+	while (last >= 0)
+	{
+		swap(a, 0, last);
+		buildHeap(a, 0, last);
+		last--;
+	}
+}
+
+int main()
+{
+	int *a;
+	int N;
+
+	scanf("%d", &N);
+
+	a = (int*)malloc(N * sizeof(int));
+
+	for (int i = 0; i < N; i++)
+	{
+		scanf("%d", &a[i]);
+	}
+
+	heapSort(a, N);
+
+	for (int i = 0; i < N; i++)
+	{
+		printf("%d ", a[i]);
+	}
+
+	free(a);
+
+	return 0;
+}
+
