@@ -11,7 +11,7 @@ void swap(int *c, int *b)
 	*b = temp;
 }
 
-void buildHeap(int *a, int s, int N) 
+void buildHeap(int *a, int s, int N)
 {
 	int left;
 	int right;
@@ -23,17 +23,18 @@ void buildHeap(int *a, int s, int N)
 		left = 2 * s + 1;
 		right = 2 * s + 2;
 
-		if (a[min] > a[left] && left < N)
+		if ((left < N) && (a[min] > a[left]))
 		{
 			min = left;
 		}
 
-		if (a[min] > a[right] && right < N)
+		if ((right < N) && (a[min] > a[right]))
 		{
 			min = right;
 		}
 
-		if (min != s) {
+		if (min != s) 
+		{
 			swap(&a[s], &a[min]);
 			s = min;
 		}
@@ -44,7 +45,7 @@ void buildHeap(int *a, int s, int N)
 void buildHeap2(int *a, int N)
 {
 	int mid = N / 2 - 1;
-	while (mid >= 0) 
+	while (mid >= 0)
 	{
 		buildHeap(a, mid, N);
 		mid--;
@@ -55,11 +56,11 @@ void heapSort(int *a, int N)
 {
 	buildHeap2(a, N);
 
-	while (N > 1) 
+	while (N > 1)
 	{
 		swap(&a[0], &a[N - 1]);
 		N--;
-		buildHeap(a, 0, N);		
+		buildHeap(a, 0, N);
 	}
 }
 
@@ -71,15 +72,15 @@ int main()
 	scanf("%d", &N);
 
 	a = (int*)malloc(N * sizeof(int));
-		
-	for (int i = 0; i < N; i++) 
+
+	for (int i = 0; i < N; i++)
 	{
 		scanf("%d", &a[i]);
 	}
 
 	heapSort(a, N);
 
-	for (int i = N-1; i >= 0; i--)
+	for (int i = N - 1; i >= 0; i--)
 	{
 		printf("%d ", a[i]);
 	}
