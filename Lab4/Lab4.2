@@ -43,7 +43,6 @@ void permutations(char *a, int N) {
 		int i = strlen(a) - 2;
 		
 		while (i >= 0) {
-			
 			if (a[i] < a[len]) {
 				int min = i + 1;
 				for (int j = i + 1; j < strlen(a); j++) {
@@ -63,13 +62,8 @@ void permutations(char *a, int N) {
 				break;
 			}
 
-			
 			i--;
 			len--;
-		}
-		
-		if (i < 0) {
-			printf("");
 		}
 	}
 }
