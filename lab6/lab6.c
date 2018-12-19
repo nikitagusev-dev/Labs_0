@@ -37,6 +37,10 @@ int main()
 	int *a;
 
 	scanf("%d", &n);
+	
+	if (n <= 0) {
+		exit(0);
+	}
 
 	a = (int*)malloc(n * sizeof(int));
 	
