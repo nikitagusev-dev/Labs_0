@@ -40,11 +40,15 @@ int main() {
 	char input[128];
 
 	gets(pattern);
-
+	
+	int sumSizeOf = 0;
 	while (fgets(input, sizeof(input), stdin)) {
-		strcat(str, input);
-		if (input[0] == '\n')
-			break;
+		sumSizeOf += 128;
+		if (sumSizeOf < 1000) {
+			strcat(str, input);
+			if (input[0] == '\n')
+				break;
+		}
 	}
 
 	if (str[0] && str[strlen(str) - 1] == '\n')
