@@ -17,7 +17,7 @@ void stackPrint(struct stack *stk) {
 	if (stk->top == 0) return;
 	curr = stk->top - 1;
 	while (curr >= 0) {
-		printf("%d ", stk->element[curr]);
+		printf("%hd ", stk->element[curr]);
 		curr--;
 	}
 }
@@ -104,8 +104,8 @@ int main() {
 	count = (short *)calloc((numberOfNodes + 1), sizeof(short));
 	
 	for (int i = 0; i < numberOfEdges; i++) {
-		scanf("%d", &begin);
-		scanf("%d", &end);
+		scanf("%hd", &begin);
+		scanf("%hd", &end);
 		if (begin == 0 & end == 0) {
 			break;
 		}
