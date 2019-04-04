@@ -90,7 +90,7 @@ int main() {
 	short *visited = NULL;
 	short *count = NULL;
 		
-	scanf("%d", &numberOfNodes);
+	scanf("%hd", &numberOfNodes);
 	scanf("%d", &numberOfEdges);
 	
 	if (numberOfEdges == -1 || numberOfNodes == -1) {
@@ -104,8 +104,8 @@ int main() {
 	count = (short *)calloc((numberOfNodes + 1), sizeof(short));
 	
 	for (int i = 0; i < numberOfEdges; i++) {
-		scanf("%hd", &begin);
-		scanf("%hd", &end);
+		scanf("%d", &begin);
+		scanf("%d", &end);
 		if (begin == 0 & end == 0) {
 			break;
 		}
