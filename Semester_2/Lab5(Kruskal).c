@@ -118,7 +118,7 @@ int main() {
 	}
 
 	checkAmount(numberOfVertices, numberOfEdges);
-	component = (int *)calloc(numberOfVertices + 2, sizeof(int));
+	component = (int *)calloc(numberOfVertices + 1, sizeof(int));
 	arrayOfEdges = (struct edge *)calloc(numberOfEdges, sizeof(struct edge));
 
 	for (int i = 0; i < numberOfEdges; i++) {
