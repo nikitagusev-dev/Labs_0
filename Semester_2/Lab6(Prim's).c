@@ -101,7 +101,7 @@ int main() {
 	arrayOfEdges = (struct edge *)calloc(numberOfEdges, sizeof(struct edge));
 
 	for (int i = 0; i < numberOfEdges; i++) {
-		if (fscanf(in, "%d %d %d", &start, &end, &weight) == EOF) {
+		if (fscanf(in, "%d %d %u", &start, &end, &weight) == EOF) {
 			fprintf(out, "bad number of lines");
 			fclose(in);
 			fclose(out);
