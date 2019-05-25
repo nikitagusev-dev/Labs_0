@@ -23,7 +23,7 @@ void checkAmount(FILE *in, FILE *out, int numberOfVertices, int numberOfEdges) {
 	}
 }
 
-void checkEdge(FILE *in, FILE *out, int start, int end, int weight, int numberOfVertices) {
+void checkEdge(FILE *in, FILE *out, int start, int end, unsigned int weight, int numberOfVertices) {
 	if (start < 0 || start > numberOfVertices || end < 0 || end > numberOfVertices) {
 		fprintf(out, "bad vertex");
 		fclose(in);
