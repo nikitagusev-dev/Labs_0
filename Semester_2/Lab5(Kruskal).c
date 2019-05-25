@@ -9,33 +9,10 @@ typedef struct edge {
 	char check;
 }edge;
 
-void q_sort(struct edge *a, int left, int right)
-{
-	int mid;
-	int i = left;
-	int j = right;
-
-	mid = (i + j) / 2;
-
-	do {
-		while (a[i].weight < a[mid].weight) {
-			i++;
-		}
-		while (a[j].weight > a[mid].weight) {
-			j--;
-		}
-		if (i <= j) {
-			struct edge temp = a[i];
-			a[i] = a[j];
-			a[j] = temp;
-
-			i++;
-			j--;
-		}
-	} while (i < j);
-
-	if (left <= j) q_sort(a, left, j);
-	if (i <= right) q_sort(a, i, right);
+int compare(const void *a, const void *b) {
+	struct edge *graphA = (struct edge*) a;
+	struct edge *graphB = (struct edge*) b;
+	return (int)(graphA->weight - graphB->weight);
 }
 
 void checkAmount(int numberOfVertices, int numberOfEdges) {
@@ -49,7 +26,7 @@ void checkAmount(int numberOfVertices, int numberOfEdges) {
 	}
 }
 
-void checkEdge(int start, int end, int weight, int numberOfVertices) {
+void checkEdge(int start, int end, unsigned int weight, int numberOfVertices) {
 	if (start < 0 || start > numberOfVertices || end < 0 || end > numberOfVertices) {
 		printf("bad vertex");
 		exit(0);
@@ -144,7 +121,7 @@ int main() {
 		component[i] = i;
 	}
 
-	q_sort(arrayOfEdges, 0, numberOfEdges - 1);
+	qsort(arrayOfEdges, (size_t)numberOfEdges, sizeof(struct edge), compare);
 
 	for (int i = 0; i < numberOfEdges; i++) {
 		if (component[arrayOfEdges[i].start] != component[arrayOfEdges[i].end]) {
