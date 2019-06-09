@@ -1,4 +1,5 @@
 #define _CRT_SECURE_NO_WARNINGS
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -15,43 +16,59 @@ int compare(const void *a, const void *b) {
 	return (int)(graphA->weight - graphB->weight);
 }
 
-void checkAmount(int numberOfVertices, int numberOfEdges) {
+int checkAmount(int numberOfVertices, int numberOfEdges) {
 	if (numberOfVertices < 0 || numberOfVertices > 5000) {
 		printf("bad number of vertices");
-		exit(0);
+		return 0;
 	}
-	if (numberOfEdges < 0 || numberOfEdges > (numberOfVertices * (numberOfVertices + 1) / 2)) {
+	if (numberOfEdges < 0 || numberOfEdges >(numberOfVertices * (numberOfVertices + 1) / 2)) {
 		printf("bad number of edges");
-		exit(0);
+		return 0;
 	}
+	return 1;
 }
 
-void checkEdge(int start, int end, unsigned int weight, int numberOfVertices) {
+int checkEdge(int start, int end, unsigned int weight, int numberOfVertices) {
 	if (start < 0 || start > numberOfVertices || end < 0 || end > numberOfVertices) {
 		printf("bad vertex");
-		exit(0);
+		return 0;
 	}
 	if (weight < 0 || weight > INT_MAX) {
 		printf("bad length");
-		exit(0);
+		return 0;
 	}
+	return 1;
 }
 
-void checkStringAmount(int stringCount, int numberOfEdges) {
+int checkStringAmount(int stringCount, int numberOfEdges) {
 	stringCount += 3;
 	if (stringCount < (numberOfEdges + 3)) {
 		printf("bad number of lines");
-		exit(0);
+		return 0;
 	}
+	return 1;
 }
 
-void checkSpanningTree(int *component, int numberOfVertices) {
+int checkSpanningTree(int *component, int numberOfVertices) {
 	for (int i = 1; i < numberOfVertices; i++) {
 		if (component[i] != component[i + 1]) {
 			printf("no spanning tree");
-			exit(0);
+			return 0;
 		}
 	}
+	return 1;
+}
+
+int checkWarnings(int numberOfVertices, int numberOfEdges) {
+	if (numberOfVertices == -1 || numberOfEdges == -1) {
+		printf("bad number of lines");
+		return 0;
+	}
+	if (numberOfVertices == 0 && numberOfEdges == 0) {
+		printf("no spanning tree");
+		return 0;
+	}
+	return 1;
 }
 
 void printResult(int numberOfEdges, struct edge *arrayOfEdges) {
@@ -85,16 +102,10 @@ int main() {
 	scanf("%d", &numberOfVertices);
 	scanf("%d", &numberOfEdges);
 
-	if (numberOfVertices == -1 || numberOfEdges == -1) {
-		printf("bad number of lines");
-		exit(0);
-	}
-	if (numberOfVertices == 0 & numberOfEdges == 0) {
-		printf("no spanning tree");
-		exit(0);
+	if (!checkWarnings(numberOfVertices, numberOfEdges) || !checkAmount(numberOfVertices, numberOfEdges)) {
+		goto END;
 	}
 
-	checkAmount(numberOfVertices, numberOfEdges);
 	component = (int *)calloc(numberOfVertices + 1, sizeof(int));
 	arrayOfEdges = (struct edge *)calloc(numberOfEdges, sizeof(struct edge));
 
@@ -102,11 +113,16 @@ int main() {
 		scanf("%d", &start);
 		scanf("%d", &end);
 		scanf("%u", &weight);
-		if (start == 0 & end == 0) {
+		if (start == 0 && end == 0) {
 			printf("bad number of lines");
+			clear(component, arrayOfEdges);
+			goto END;
 		}
 		else {
-			checkEdge(start, end, weight, numberOfVertices);
+			if (!checkEdge(start, end, weight, numberOfVertices)) {
+				clear(component, arrayOfEdges);
+				goto END;
+			}
 			arrayOfEdges[i].start = start;
 			arrayOfEdges[i].end = end;
 			arrayOfEdges[i].weight = weight;
@@ -115,8 +131,11 @@ int main() {
 		}
 	}
 
-	checkStringAmount(stringCount, numberOfEdges);
-	
+	if (!checkStringAmount(stringCount, numberOfEdges)) {
+		clear(component, arrayOfEdges);
+		goto END;
+	}
+
 	for (int i = 1; i <= numberOfVertices; i++) {
 		component[i] = i;
 	}
@@ -135,9 +154,13 @@ int main() {
 		}
 	}
 
-	checkSpanningTree(component, numberOfVertices);
+	if (!checkSpanningTree(component, numberOfVertices)) {
+		clear(component, arrayOfEdges);
+		goto END;
+	}
 	printResult(numberOfEdges, arrayOfEdges);
 	clear(component, arrayOfEdges);
 
+	END:
 	return 0;
 }
