@@ -1,51 +1,53 @@
 #define _CRT_SECURE_NO_WARNINGS
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 typedef struct edge {
 	int start;
 	int end;
-	unsigned int weight;
+	long long weight;
 }edge;
 
-void checkAmount(FILE *in, FILE *out, int numberOfVertices, int numberOfEdges) {
+int checkAmount(FILE *out, int numberOfVertices, int numberOfEdges) {
 	if (numberOfVertices < 0 || numberOfVertices > 5000) {
 		fprintf(out, "bad number of vertices");
-		fclose(in);
-		fclose(out);
-		exit(0);
+		return 0;
 	}
-	if (numberOfEdges < 0 || numberOfEdges >(numberOfVertices * (numberOfVertices + 1) / 2)) {
+	if (numberOfEdges < 0 || numberOfEdges > (numberOfVertices * (numberOfVertices + 1) / 2)) {
 		fprintf(out, "bad number of edges");
-		fclose(in);
-		fclose(out);
-		exit(0);
+		return 0;
 	}
+	return 1;
 }
 
-void checkEdge(FILE *in, FILE *out, int start, int end, unsigned int weight, int numberOfVertices) {
+int checkEdge(FILE *out, int start, int end, long long weight, int numberOfVertices) {
 	if (start < 1 || start > numberOfVertices || end < 1 || end > numberOfVertices) {
 		fprintf(out, "bad vertex");
-		fclose(in);
-		fclose(out);
-		exit(0);
+		return 0;
 	}
 	if (weight < 0 || weight > INT_MAX) {
 		fprintf(out, "bad length");
-		fclose(in);
-		fclose(out);
-		exit(0);
+		return 0;
 	}
+	return 1;
 }
 
-void checkStringAmount(FILE *in, FILE *out, int stringCount, int numberOfEdges) {
+int checkStringAmount(FILE *out, int stringCount, int numberOfEdges) {
 	stringCount += 4;
 	if (stringCount < (numberOfEdges + 3)) {
 		fprintf(out, "bad number of lines");
-		fclose(in);
-		fclose(out);
-		exit(0);
+		return 0;
 	}
+	return 1;
+}
+
+int checkWarnings(FILE *out, int numberOfVertices, int numberOfEdges) {
+	if (numberOfVertices == -1 || numberOfEdges == -1) {
+		fprintf(out, "bad number of lines");
+		return 0;
+	}
+	return 1;
 }
 
 void calculateDistances(int numberOfVertices, int numberOfEdges, unsigned long long *dist, int *used, edge *arrayOfEdges) {
@@ -76,10 +78,10 @@ void calculateDistances(int numberOfVertices, int numberOfEdges, unsigned long l
 	}
 }
 
-void printDistances(FILE *in, FILE *out, int numberOfVertices, int numberOfEdges, int beginOfWay, int endOfWay, unsigned long long *dist) {
+int printDistances(FILE *out, int numberOfVertices, int numberOfEdges, int beginOfWay, int endOfWay, unsigned long long *dist) {
 	if (numberOfVertices != 0 && numberOfEdges == 0 && beginOfWay != endOfWay) {
 		for (int i = 1; i <= numberOfVertices; i++) {
-			if (dist[i] == INT_MAX + 1) {
+			if (dist[i] == LLONG_MAX) {
 				fprintf(out, "oo ");
 			}
 			else {
@@ -88,16 +90,14 @@ void printDistances(FILE *in, FILE *out, int numberOfVertices, int numberOfEdges
 		}
 		fprintf(out, "\n");
 		fprintf(out, "no path");
-		fclose(in);
-		fclose(out);
-		exit(0);
+		return 0;
 	}
 	else {
 		for (int i = 1; i <= numberOfVertices; i++) {
 			if (dist[i] <= INT_MAX) {
 				fprintf(out, "%llu ", dist[i]);
 			}
-			else if (dist[i] == (INT_MAX + 1)) {
+			else if (dist[i] == LLONG_MAX) {
 				fprintf(out, "oo ");
 			}
 			else {
@@ -106,6 +106,7 @@ void printDistances(FILE *in, FILE *out, int numberOfVertices, int numberOfEdges
 		}
 		fprintf(out, "\n");
 	}
+	return 1;
 }
 
 void calculatePath(FILE *out, int beginOfWay, int endOfWay, int numberOfEdges, edge *arrayOfEdges, int *verticesOfWay, unsigned long long *dist) {
@@ -114,7 +115,7 @@ void calculatePath(FILE *out, int beginOfWay, int endOfWay, int numberOfEdges, e
 	verticesOfWay[0] = wayVertice;
 	int index = 1;
 	int overflowFlag = 0;
-	int tempVertice;
+	int tempVertice = 0;
 
 	while (wayVertice != beginOfWay) {
 		int check = 0;
@@ -161,7 +162,7 @@ void calculatePath(FILE *out, int beginOfWay, int endOfWay, int numberOfEdges, e
 	}
 }
 
-void clear(unsigned int *dist, edge *arrayOfEdges, int *used, int *endOfEdge) {
+void clear(unsigned long long *dist, edge *arrayOfEdges, int *used, int *endOfEdge) {
 	free(dist);
 	free(arrayOfEdges);
 	free(used);
@@ -177,7 +178,7 @@ int main() {
 	int endOfWay;
 	int start = 0;
 	int end = 0;
-	unsigned int weight;
+	long long weight = 0;
 	int stringCount = 0;
 	unsigned long long *dist;
 	int *used;
@@ -188,29 +189,29 @@ int main() {
 	fscanf(in, "%d %d", &beginOfWay, &endOfWay);
 	fscanf(in, "%d", &numberOfEdges);
 
-	if (numberOfVertices == -1 || numberOfEdges == -1) {
-		fprintf(out, "bad number of lines");
-		fclose(in);
-		fclose(out);
-		exit(0);
+	if (!checkWarnings(out, numberOfVertices, numberOfEdges)) {
+		goto END;
+	}
+	if (!checkAmount(out, numberOfVertices, numberOfEdges)) {
+		goto END;
 	}
 
-	checkAmount(in, out, numberOfVertices, numberOfEdges);
 	dist = (unsigned long long *)calloc(numberOfVertices + 1, sizeof(unsigned long long));
 	used = (int *)calloc(numberOfVertices + 1, sizeof(int));
 	verticesOfWay = (int *)calloc(numberOfVertices, sizeof(int));
 	arrayOfEdges = (struct edge *)calloc(numberOfEdges, sizeof(struct edge));
 
 	for (int i = 0; i < numberOfEdges; i++) {
-		if (fscanf(in, "%d %d %u", &start, &end, &weight) == EOF) {
+		if (fscanf(in, "%d %d %lli", &start, &end, &weight) == EOF) {
 			fprintf(out, "bad number of lines");
-			fclose(in);
-			fclose(out);
 			clear(dist, arrayOfEdges, used, verticesOfWay);
-			exit(0);
+			goto END;
 		}
 		else {
-			checkEdge(in, out, start, end, weight, numberOfVertices);
+			if (!checkEdge(out, start, end, weight, numberOfVertices)) {
+				clear(dist, arrayOfEdges, used, verticesOfWay);
+				goto END;
+			}
 			arrayOfEdges[i].start = start;
 			arrayOfEdges[i].end = end;
 			arrayOfEdges[i].weight = weight;
@@ -220,28 +221,33 @@ int main() {
 
 	if (start == 0 && end == 0 && numberOfVertices == 0) {
 		fprintf(out, "bad vertex");
-		fclose(in);
-		fclose(out);
-		exit(0);
+		clear(dist, arrayOfEdges, used, verticesOfWay);
+		goto END;
 	}
 
-	checkStringAmount(in, out, stringCount, numberOfEdges);
+	if (!checkStringAmount(out, stringCount, numberOfEdges)) {
+		clear(dist, arrayOfEdges, used, verticesOfWay);
+		goto END;
+	}
 
 	for (int i = 1; i <= numberOfVertices; i++) {
-		dist[i] = INT_MAX + 1;
+		dist[i] = LLONG_MAX;
 	}
 	dist[beginOfWay] = 0;
 
 	calculateDistances(numberOfVertices, numberOfEdges, dist, used, arrayOfEdges);
 
-	printDistances(in, out, numberOfVertices, numberOfEdges, beginOfWay, endOfWay, dist);
+	if (!printDistances(out, numberOfVertices, numberOfEdges, beginOfWay, endOfWay, dist)) {
+		clear(dist, arrayOfEdges, used, verticesOfWay);
+		goto END;
+	}
 
 	calculatePath(out, beginOfWay, endOfWay, numberOfEdges, arrayOfEdges, verticesOfWay, dist);
 		
-	fclose(in);
-	fclose(out);
-
 	clear(dist, arrayOfEdges, used, verticesOfWay);
 
+END:
+	fclose(in);
+	fclose(out);
 	return 0;
 }
