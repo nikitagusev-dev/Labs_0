@@ -1,51 +1,57 @@
 #define _CRT_SECURE_NO_WARNINGS
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 typedef struct edge {
 	int start;
 	int end;
-	unsigned int weight;
+	long long weight;
 }edge;
 
-void checkAmount(FILE *in, FILE *out, int numberOfVertices, int numberOfEdges) {
+int checkAmount(FILE *out, int numberOfVertices, int numberOfEdges) {
 	if (numberOfVertices < 0 || numberOfVertices > 5000) {
 		fprintf(out, "bad number of vertices");
-		fclose(in);
-		fclose(out);
-		exit(0);
+		return 0;
 	}
-	if (numberOfEdges < 0 || numberOfEdges >(numberOfVertices * (numberOfVertices + 1) / 2)) {
+	if (numberOfEdges < 0 || numberOfEdges > (numberOfVertices * (numberOfVertices + 1) / 2)) {
 		fprintf(out, "bad number of edges");
-		fclose(in);
-		fclose(out);
-		exit(0);
+		return 0;
 	}
+	return 1;
 }
 
-void checkEdge(FILE *in, FILE *out, int start, int end, unsigned int weight, int numberOfVertices) {
+int checkEdge(FILE *out, int start, int end, long long weight, int numberOfVertices) {
 	if (start < 0 || start > numberOfVertices || end < 0 || end > numberOfVertices) {
 		fprintf(out, "bad vertex");
-		fclose(in);
-		fclose(out);
-		exit(0);
+		return 0;
 	}
 	if (weight < 0 || weight > INT_MAX) {
 		fprintf(out, "bad length");
-		fclose(in);
-		fclose(out);
-		exit(0);
+		return 0;
 	}
+	return 1;
 }
 
-void checkStringAmount(FILE *in, FILE *out, int stringCount, int numberOfEdges) {
+int checkStringAmount(FILE *out, int stringCount, int numberOfEdges) {
 	stringCount += 3;
 	if (stringCount < (numberOfEdges + 3)) {
 		fprintf(out, "bad number of lines");
-		fclose(in);
-		fclose(out);
-		exit(0);
+		return 0;
 	}
+	return 1;
+}
+
+int checkWarnings(FILE *out, int numberOfVertices, int numberOfEdges) {
+	if (numberOfVertices == -1 || numberOfEdges == -1) {
+		fprintf(out, "bad number of lines");
+		return 0;
+	}
+	if (numberOfVertices == 0 && numberOfEdges == 0) {
+		fprintf(out, "no spanning tree");
+		return 0;
+	}
+	return 1;
 }
 
 void printResult(FILE *out, int currentVertice, int *endOfEdge) {
@@ -57,7 +63,7 @@ void printResult(FILE *out, int currentVertice, int *endOfEdge) {
 	}
 }
 
-void clear(unsigned int *dist, struct edge *arrayOfEdges, int *used, int *endOfEdge) {
+void clear(long long *dist, struct edge *arrayOfEdges, int *used, int *endOfEdge) {
 	free(dist);
 	free(arrayOfEdges);
 	free(used);
@@ -71,9 +77,9 @@ int main() {
 	int numberOfEdges = -1;
 	int start = 0;
 	int end = 0;
-	unsigned int weight;
+	long long weight;
 	int stringCount = 0;
-	unsigned int *dist;
+	long long *dist;
 	int *used;
 	int *endOfEdge;
 	edge *arrayOfEdges;
@@ -81,35 +87,26 @@ int main() {
 	fscanf(in, "%d", &numberOfVertices);
 	fscanf(in, "%d", &numberOfEdges);
 
-	if (numberOfVertices == -1 || numberOfEdges == -1) {
-		fprintf(out, "bad number of lines");
-		fclose(in);
-		fclose(out);
-		exit(0);
+	if (!checkWarnings(out, numberOfVertices, numberOfEdges) || !checkAmount(out, numberOfVertices, numberOfEdges)) {
+		goto END;
 	}
-	if (numberOfVertices == 0 && numberOfEdges == 0) {
-		fprintf(out, "no spanning tree");
-		fclose(in);
-		fclose(out);
-		exit(0);
-	}
-
-	checkAmount(in, out, numberOfVertices, numberOfEdges);
-	dist = (unsigned int *)calloc(numberOfVertices + 1, sizeof(unsigned int));
+	
+	dist = (long long *)calloc(numberOfVertices + 1, sizeof(long long));
 	used = (int *)calloc(numberOfVertices + 1, sizeof(int));
 	endOfEdge = (int *)calloc(numberOfVertices + 1, sizeof(int));
 	arrayOfEdges = (struct edge *)calloc(numberOfEdges, sizeof(struct edge));
 
 	for (int i = 0; i < numberOfEdges; i++) {
-		if (fscanf(in, "%d %d %u", &start, &end, &weight) == EOF) {
+		if (fscanf(in, "%d %d %lli", &start, &end, &weight) == EOF) {
 			fprintf(out, "bad number of lines");
-			fclose(in);
-			fclose(out);
 			clear(dist, arrayOfEdges, used, endOfEdge);
-			exit(0);
+			goto END;
 		}
 		else {
-			checkEdge(in, out, start, end, weight, numberOfVertices);
+			if (!checkEdge(out, start, end, weight, numberOfVertices)) {
+				clear(dist, arrayOfEdges, used, endOfEdge);
+				goto END;
+			}
 			arrayOfEdges[i].start = start;
 			arrayOfEdges[i].end = end;
 			arrayOfEdges[i].weight = weight;
@@ -117,10 +114,13 @@ int main() {
 		}
 	}
 
-	checkStringAmount(in, out, stringCount, numberOfEdges);
+	if (!checkStringAmount(out, stringCount, numberOfEdges)) {
+		clear(dist, arrayOfEdges, used, endOfEdge);
+		goto END;
+	}
 
 	for (int i = 1; i <= numberOfVertices; i++) {
-		dist[i] = INT_MAX + 1;
+		dist[i] = UINT_MAX;
 	}
 	dist[1] = 0;
 
@@ -135,10 +135,8 @@ int main() {
 			fclose(out);
 			out = fopen("out.txt", "w");
 			fprintf(out, "no spanning tree");
-			fclose(in);
-			fclose(out);
 			clear(dist, arrayOfEdges, used, endOfEdge);
-			exit(0);
+			goto END;
 		}
 		used[currentVertice] = 1;
 		if (endOfEdge[currentVertice] != 0) {
@@ -158,10 +156,10 @@ int main() {
 		}
 	}
 	
+	clear(dist, arrayOfEdges, used, endOfEdge);
+
+END:
 	fclose(in);
 	fclose(out);
-
-	clear(dist, arrayOfEdges, used, endOfEdge);
-	
 	return 0;
 }
