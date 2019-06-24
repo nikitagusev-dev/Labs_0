@@ -5,7 +5,5 @@
 
 void code(FILE *in, FILE *out);
 void decode(FILE *in, FILE *out);
-void freeCodeTable(Code **codeTable);
-void freetree(tree *tree);
 
 #endif
