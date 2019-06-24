@@ -1,57 +1,26 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <limits.h>
 #include "Code.h"
+#define MAX_SIZE 256
+#define FILLER 0
 
-queue *newqueue(tree *node) {
-	queue *tmp = (queue*)malloc(sizeof(queue));
-	tmp->next = NULL;
-	tmp->root = node;
-	return tmp;
-}
-
-tree *newtree(unsigned char sym, int freq) {
-	tree *tmp = (tree*)malloc(sizeof(tree));
-	tmp->freq = freq;
-	tmp->sym = sym;
-	tmp->left = NULL;
-	tmp->right = NULL;
-	return tmp;
-}
-
-Code *newCode(unsigned char* sym, int size) {
+Code *newCode(unsigned char* sym, const int size) {
 	Code *tmp = (Code*)malloc(sizeof(Code));
 	tmp->sym = sym;
 	tmp->size = size;
 	return tmp;
 }
 
-void push(queue **sortedqueue, tree *node) {
-	int val = node->freq;
-	queue *tmp = newqueue(node);
-	if (!(*sortedqueue) || (*sortedqueue)->root->freq >= val) {
-		tmp->next = *sortedqueue;
-		*sortedqueue = tmp;
-		return;
-	}
-	queue *cur = *sortedqueue;
-	while (cur->next && val > cur->next->root->freq) {
-		cur = cur->next;
-	}
-	tmp->next = cur->next;
-	cur->next = tmp;
-}
-
-tree *pop(queue **head) {
-	queue *tmp = *head;
-	tree *sym = tmp->root;
-	*head = (*head)->next;
-	free(tmp);
-	return sym;
-}
-
 void countFreq(int* freqTable, FILE *in) {
-	int c;
-	while ((c = fgetc(in)) != EOF) {
-		freqTable[c]++;
+	int count;
+	unsigned char *buffer = calloc(1024, sizeof(char));
+	while (count = fread(buffer, sizeof(char), 1024, in)) {
+		for (int i = 0; i < count; i++) {
+			freqTable[buffer[i]]++;
+		}
 	}
+	free(buffer);
 }
 
 void buildBase(queue **queue, int *freqTable) {
@@ -62,7 +31,7 @@ void buildBase(queue **queue, int *freqTable) {
 	}
 }
 
-tree *merge(tree *first, tree *second) {
+static tree *merge(tree *first, tree *second) {
 	tree *tmp = newtree(FILLER, first->freq + second->freq);
 	tmp->left = second;
 	tmp->right = first;
@@ -79,11 +48,11 @@ tree *buildCodetree(queue **queue) {
 	return pop(queue);
 }
 
-void writeSize(unsigned int size, FILE *out) {
+void writeSize(const unsigned int size, FILE *out) {
 	fwrite(&size, sizeof(unsigned int), 1, out);
 }
 
-void writeBits(unsigned char bits, int count, BitStream *bitStream, FILE *out) {
+static void writeBits(const unsigned char bits, const int count, BitStream *bitStream, FILE *out) {
 	if (!count) {
 		return;
 	}
@@ -118,7 +87,7 @@ void writetree(tree *codetree, BitStream *bitStream, FILE *out) {
 	writetree(codetree->right, bitStream, out);
 }
 
-void resizeBuffer(Code *buffer) {
+static void resizeBuffer(Code *buffer) {
 	buffer->size++;
 	int isOverflow = buffer->size % CHAR_BIT;
 	if (isOverflow == 1) {
@@ -128,12 +97,12 @@ void resizeBuffer(Code *buffer) {
 	}
 }
 
-void addBit(Code *buffer, int bit) {
+static void addBit(Code *buffer, const int bit) {
 	int pos = (buffer->size - 1) / CHAR_BIT;
 	buffer->sym[pos] = (buffer->sym[pos] << 1) + bit;
 }
 
-unsigned char* copyCode(Code *buffer) {
+static unsigned char* copyCode(Code *buffer) {
 	int bytes = (buffer->size - 1) / CHAR_BIT + 1;
 	unsigned char* newSym = (unsigned char*)malloc(bytes);
 	for (int i = 0; i < bytes; i++) {
