@@ -1,4 +1,8 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <limits.h>
 #include "Decode.h"
+#define FILLER 0
 
 int readSize(FILE *in, unsigned int* size) {
 	return fread(size, sizeof(unsigned int), 1, in);
@@ -32,7 +36,7 @@ tree *getCodetree(FILE *in, BitStream *bitStream) {
 	return codetree;
 }
 
-void decodeText(tree *codetree, FILE *in, FILE *out, unsigned int size, BitStream *bitStream) {
+void decodeText(tree *codetree, FILE *in, FILE *out, const unsigned int size, BitStream *bitStream) {
 	tree *tmpCodetree;
 	for (unsigned int i = 0; i < size; i++) {
 		tmpCodetree = codetree;
