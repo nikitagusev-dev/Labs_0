@@ -1,10 +1,5 @@
 #ifndef HUFFMAN_STRUCTS_H
 #define HUFFMAN_STRUCTS_H
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#define MAX_SIZE 256
-#define FILLER 0
 
 typedef struct tree {
 	unsigned char sym;
@@ -28,6 +23,10 @@ typedef struct BitStream {
 	int size;
 } BitStream;
 
-BitStream *newBitStream();
+queue *newqueue(tree *node);
+tree *newtree(const unsigned char sym, const int freq);
+void push(queue **sortedqueue, tree *node);
+tree *pop(queue **head);
+BitStream *newBitStream(void);
 
 #endif
