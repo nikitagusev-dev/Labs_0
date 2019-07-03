@@ -1,209 +1,220 @@
+#define _CRT_SECURE_NO_WARNINGS
+#define SIZE_OF_STRING 2
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <ctype.h>
 #include <string.h>
-#define MAX 1001
 
-struct num{
-	int nums[MAX];
+typedef struct operStack {
+	char *array;
 	int top;
-};
+	int sizeOfArray;
+}operStack;
 
-struct oper{
-	char opers[MAX];
+void operStackPush(operStack *stk, char symbol) {
+	if (stk->top == stk->sizeOfArray - 1) {
+		char *tempArray = (char *)calloc(stk->sizeOfArray * 2, sizeof(char));
+		for (size_t i = 0; i < stk->sizeOfArray - 1; i++) {
+			tempArray[i] = stk->array[i];
+		}
+		stk->array = tempArray;
+		stk->sizeOfArray *= 2;
+	}
+	stk->array[stk->top] = symbol;
+	stk->top++;
+}
+
+char operStackPop(operStack *stk) {
+	if (stk->top == 0)
+		return 0;
+	else {
+		char element = stk->array[stk->top - 1];
+		stk->top--;
+		if (stk->top < stk->sizeOfArray / 4) {
+			char *tempArray = (char *)calloc(stk->sizeOfArray / 2, sizeof(char));
+			for (size_t i = 0; i < (stk->sizeOfArray / 4) - 1; i++) {
+				tempArray[i] = stk->array[i];
+			}
+			stk->array = tempArray;
+			stk->sizeOfArray /= 2;
+		}
+		return element;
+	}
+}
+
+typedef struct numberStack {
+	int *array;
 	int top;
-};
+	int sizeOfArray;
+}numberStack;
 
-void init1(struct num *nmb);
-void push1(struct num *nmb, int sym);
-int pop1(struct num *nmb);
-int isempty1(struct num *nmb);
-int nmbTop(struct num *nmb);
+void numberStackPush(numberStack *stk, int number) {
+	if (stk->top == stk->sizeOfArray - 1) {
+		int *tempArray = (int *)calloc(stk->sizeOfArray * 2, sizeof(int));
+		for (size_t i = 0; i < stk->sizeOfArray - 1; i++) {
+			tempArray[i] = stk->array[i];
+		}
+		stk->array = tempArray;
+		stk->sizeOfArray *= 2;
+	}
+	stk->array[stk->top] = number;
+	stk->top++;
+}
 
-void init2(struct oper *op);
-void push2(struct oper *op, char sym);
-char pop2(struct oper *op);
-int isempty2(struct oper *op);
-int opTop(struct oper *op);
+int numberStackPop(numberStack *stk) {
+	if (stk->top == 0)
+		return 0;
+	else {
+		int element = stk->array[stk->top - 1];
+		stk->top--;
+		if (stk->top < stk->sizeOfArray / 4) {
+			int *tempArray = (int *)calloc(stk->sizeOfArray / 2, sizeof(int));
+			for (size_t i = 0; i < (stk->sizeOfArray / 4) - 1; i++) {
+				tempArray[i] = stk->array[i];
+			}
+			stk->array = tempArray;
+			stk->sizeOfArray /= 2;
+		}
+		return element;
+	}
+}
 
-
-void poland(struct num *nmb, char *ex, struct oper *op);
-void calc(struct num *nmb, char sym);
-int prior(char sym);
-
-int main(){
-	char ex[1000] = {0};
-	struct num nmb;
-	struct oper op;
-	init1(&nmb);
-	init2(&op);
-	poland (&nmb, ex, &op);
-	printf ("%d", nmbTop(&nmb));
+int checkValue(char symbol) {
+	if (symbol >= '0' && symbol <= '9')
+		return 1;
+	if (symbol == '(')
+		return 2;
+	if (symbol == ')')
+		return 3;
+	if (symbol == '+' || symbol == '-' || symbol == '*' || symbol == '/')
+		return 4;
 	return 0;
 }
 
-void poland(struct num *nmb, char *ex, struct oper *op){
-	char sym;
-	int number;
-	int i = 0, count = 0, inbracket = 0;
-	while ((sym = fgetc(stdin)) != EOF){
-		if (isdigit(sym) != 0){
-			ex[i] = sym;
-			++i;
-			while (isdigit(sym = fgetc(stdin)) != 0){
-				ex[i] = sym;
-				++i;
-			}
-			number = atoi(ex);
-			++inbracket;
-			push1(nmb, number);
-			memset(ex,0,i);
-			i = 0;
-		}
-		if (sym == '('){
-			inbracket = 0;
-			push2(op,sym);
-			++count;
-			continue;
-		}
-		else if (sym == ')'){
-			--count;
-			if ((count >= 0)&&(inbracket != 0)){
-				while (opTop(op) != '('){
-					calc(nmb, pop2(op));
-				}
-			pop2(op);
-			}
-			else{
-				printf ("syntax error");
-				exit (0);
-			}
-		}
-		else if ((sym == '+')||(sym == '-')||(sym == '*')||(sym == '/')){
-			while ((!isempty2(op))&&(prior(opTop(op))>=prior(sym)))
-				calc(nmb, pop2(op));
-			push2(op, sym);
-			continue;
-		}
-		else if ((sym != '\n')&&(sym != EOF)){
-			printf ("syntax error");
-			exit (0);
-		}
-	}
-	if (!isempty1(nmb))
-		while (!isempty2(op))
-			calc(nmb,pop2(op));
-	else{
-		printf ("syntax error");
-		exit (0);
-	}
-}
-void calc(struct num *nmb, char sym){
-	int a,b;
-	if (sym == '('){
-		printf ("syntax error");
-		exit (0);
-	}
-	else{
-		if (!isempty1(nmb))
-			a = pop1(nmb);
-		else{
-			printf ("syntax error");
-			exit (0);
-		}
-		if (!isempty1(nmb))
-			b = pop1(nmb);
-		else{
-			printf ("syntax error");
-			exit (0);
-		}
-		if (sym == '+')
-			push1(nmb, b+a);
-		else if (sym == '-')
-			push1(nmb, b-a);
-		else if (sym == '*')
-			push1(nmb, b*a);
-		else if (sym =='/')
-			if (a != 0)
-				push1(nmb, b/a);
-			else{
-				printf ("division by zero");
-				exit (0);
-			}
-	}
-}
-
-void push1(struct num *nmb, int sym){
-	if(nmb->top < MAX) {
-    nmb->nums[nmb->top] = sym;
-    nmb->top++;
-	} 
-}
-
-void init1(struct num *nmb) {
-  nmb->top = 0;
-}
-
-int pop1(struct num *nmb) {
-  int sym;
-  if((nmb->top) > 0) {
-    nmb->top--;
-    sym = nmb->nums[nmb->top];
-    return(sym);
-  }
-  else 
-    return 0;
-}
-
-int opTop(struct oper *op) {
-    return( op->opers[op->top-1]);
-}
-
-int nmbTop(struct num *nmb) {
-    return( nmb->nums[nmb->top-1]);
-}
- 
-int isempty1(struct num *nmb) {
-	if((nmb->top) == 0)
+int priority(char symbol) {
+	if (symbol == '(' || symbol == ')')
 		return 1;
-	else 
-		return 0;
-}
-
-void push2(struct oper *op, char sym){
-	if(op->top < MAX) {
-    op->opers[op->top] = sym;
-    op->top++;
-	} 
-}
-
-void init2(struct oper *op) {
-  op->top = 0;
-}
-
-char pop2(struct oper *op) {
-  char sym;
-  if((op->top) > 0) {
-    op->top--;
-    sym = op->opers[op->top];
-    return(sym);
-  }
-  else 
-    return 0;
-}
- 
-int isempty2(struct oper *op) {
-	if((op->top) == 0)
-		return 1;
-	else 
-		return 0;
-}
-
-int prior(char sym){
-	if ((sym == '(')||(sym == ')'))
-		return 1;
-	if ((sym == '+')||(sym =='-'))
+	if (symbol == '-' || symbol == '+')
 		return 2;
-	if ((sym == '*')||(sym == '/'))
-		return 4;
+	if (symbol == '*' || symbol == '/')
+		return 3;
+}
+
+void calculateNumbers(numberStack *numStk, char operator) {
+	if (numStk->top == 0 || numStk->top == 1) {
+		printf("syntax error");
+		exit(0);
+	}
+	int second = numberStackPop(numStk);
+	int first = numberStackPop(numStk);
+	int solution;
+	switch (operator) {
+	case '+':
+		solution = first + second;
+		break;
+	case '-':
+		solution = first - second;
+		break;
+	case '*':
+		solution = first * second;
+		break;
+	case '/':
+		if (second != 0) {
+			solution = first / second;
+			break;
+		}
+		else {
+			printf("division by zero");
+			exit(0);
+		}
+	}
+	numberStackPush(numStk, solution);
+}
+
+void convertAndCalculate(numberStack *numStk, operStack *operStk, char *tempString, int *countOfIterations) {
+	char current;
+	int symbolsInBracket = 0;
+	while ((current = fgetc(stdin)) != '\n') {
+		(*countOfIterations)++;
+		if (checkValue(current) == 1) {
+			int tempIndex = 0;
+			int currentNumber;
+			tempString[tempIndex] = current;
+			tempIndex++;
+			int countOfTempBytes = SIZE_OF_STRING + 1;
+			while (isdigit(current = fgetc(stdin)) != 0) {
+				tempString = (char *)realloc(tempString, sizeof(char) * countOfTempBytes);
+				tempString[tempIndex] = current;
+				tempIndex++;
+				countOfTempBytes++;
+			}
+			currentNumber = atoi(tempString);
+			symbolsInBracket++;
+			numberStackPush(numStk, currentNumber);
+			memset(tempString, 0, tempIndex + SIZE_OF_STRING);
+			if (current == '\n')
+				break;
+		}
+		if (checkValue(current) == 2) {
+			operStackPush(operStk, current);
+			symbolsInBracket = 0;
+		}
+		else if (checkValue(current) == 3) {
+			if (operStk->top == 0 || symbolsInBracket == 0) {
+				printf("syntax error");
+				exit(0);
+			}
+			else {
+				while (checkValue(operStk->array[operStk->top - 1]) != 2) {
+					calculateNumbers(numStk, operStackPop(operStk));
+				}
+				operStackPop(operStk);
+			}
+		}
+		else if (checkValue(current) == 4) {
+			while (operStk->top && ((priority(operStk->array[operStk->top - 1]) >= priority(current))))
+				calculateNumbers(numStk, operStackPop(operStk));
+			operStackPush(operStk, current);
+		}
+		else {
+			printf("syntax error");
+			exit(0);
+		}
+	}
+	while (operStk->top)
+		calculateNumbers(numStk, operStackPop(operStk));
+}
+
+void clear(numberStack *numStk, operStack *operStk, char *tempString) {
+	free(numStk);
+	free(operStk);
+	free(tempString);
+}
+
+int main() {
+	operStack *operStk;
+	numberStack *numStk;
+	char *tempString;
+	int countOfIterations;
+
+	operStk = (operStack *)calloc(1, sizeof(operStack));
+	numStk = (numberStack *)calloc(1, sizeof(numberStack));
+	tempString = (char *)calloc(SIZE_OF_STRING, sizeof(char));
+
+	operStk->sizeOfArray = 1;
+	numStk->sizeOfArray = 1;
+	countOfIterations = 0;
+
+	convertAndCalculate(numStk, operStk, tempString, &countOfIterations);
+	if (countOfIterations > 0) {
+		printf("%d", numberStackPop(numStk));
+	}
+	else {
+		printf("syntax error");
+		exit(0);
+	}
+
+	clear(numStk, operStk, tempString);
+
+	return 0;
 }
